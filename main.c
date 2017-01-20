@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/30 18:45:44 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/19 13:28:20 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/20 15:18:05 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,19 @@
 #include <stdio.h>
 
 void		ft_print_list(t_map *map);
+
+int			ft_list_len(t_map *map)
+{
+	int len;
+
+	len = 0;
+	while (map)
+	{
+		len++;
+		map = map->next;
+	}
+	return (len);
+}
 
 int			ft_usage(void)
 {
@@ -66,10 +79,16 @@ void		ft_map_push(t_map **map, char **sp)
 	int		i;
 
 	new = ft_new_struct();
-	new->z_coords = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	new->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	new->x = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	new->y = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	i = -1;
 	while (sp[++i])
-		new->z_coords[i] = ft_atoi(sp[i]);
+	{
+		new->z[i] = ft_atoi(sp[i]);
+		new->x[i] = i + 5;
+		new->y[i] = ft_list_len(*map) + 5;
+	}
 	new->len = i;
 	if (*map == NULL)
 	{
@@ -93,25 +112,13 @@ void		ft_print_list(t_map *map)
 		i = 0;
 		while (i < h->len)
 		{
-			printf("%i ", h->z_coords[i]);
+			printf("z=%i,", h->z[i]);
+			printf("x=%i,y=%i | ",h->x[i], h->y[i]);
 			i++;
 		}
 		printf("\n");
 		h = h->next;
 	}
-}
-
-int			ft_list_len(t_map *map)
-{
-	int len;
-
-	len = 1;
-	while (map)
-	{
-		len++;
-		map = map->next;
-	}
-	return (len);
 }
 
 int			mouse_hook(int	key, int x, int y, t_wind *w)
@@ -130,7 +137,7 @@ int			mouse_hook(int	key, int x, int y, t_wind *w)
 		printf("Scroll right!");
 	else if (key == 7)
 		printf("Scroll left!");
-	printf(" (%d, %d)\n", x, y);
+	printf("(%d, %d)\n", x, y);
 	if (w)
 		return (0);
 	return (0);
@@ -138,7 +145,6 @@ int			mouse_hook(int	key, int x, int y, t_wind *w)
 
 int			key_hook(int key, t_wind *w)
 {
-	//	printf("key: %i\n", key);
 	if (key == 53) // ESC
 		exit(1);
 	if (w)
@@ -149,41 +155,51 @@ int			key_hook(int key, t_wind *w)
 void		draw_map(t_wind *w, t_map *map)
 {
 	int		i;
-	int		j;
 	int		point[4];
-	int		dist;
+	int		dist = 10;
+	double	angle;
 
-	i = 40;
-	if (map)
-		dist = 10;
-	while (++i < w->width + 40)
+	angle = 0.2;
+	while (map)
 	{
-		j = 40;
-		while (++j < w->height + 40)
+		i = 0;
+		while (i <= map->len)
 		{
-			point[0] = i + dist;
-			point[1] = j + dist;
-			point[2] = i + dist;
-			point[3] = j + dist;
-			draw_line(point, w->mlx, w->window);
+			if (i < map->len)
+			{
+				point[0] = dist * (map->x[i] * cos(angle) - map->y[i] * sin(angle));
+				point[1] = dist * (map->x[i] * sin(angle) + map->y[i] * cos(angle));
+				point[2] = dist + dist * (map->x[i] * cos(angle) - map->y[i] * sin(angle));
+				point[3] = dist * (map->x[i] * sin(angle) + map->y[i] * cos(angle));
+				draw_line(point, w->mlx, w->window);
+			}
+			if (map->next != NULL)
+			{
+				point[0] = dist * (map->next->x[i] * cos(angle) - map->next->y[i] * sin(angle));
+				point[1] = dist * (map->next->x[i] * sin(angle) + map->next->y[i] * cos(angle));
+				point[2] = dist * (map->next->x[i] * sin(angle) + map->next->y[i] * cos(angle));
+				point[3] = dist * (map->next->x[i] * cos(angle) - map->next->y[i] * sin(angle));
+				draw_line(point, w->mlx, w->window);
+			}
+			i++;
 		}
+		map = map->next;
 	}
 }
 
 void		ft_create_window(t_map *map)
 {
-	t_wind	*w;
+	t_wind	w;
 
-	w = (t_wind *)malloc(sizeof(t_wind));
-	w->width = map->len;
-	w->height = ft_list_len(map);
-	w->mlx = mlx_init();
-	w->window = mlx_new_window(w->mlx, w->width * 30, w->height * 30, 
+	w.width = map->len * 40;
+	w.height = ft_list_len(map) * 40;
+	w.mlx = mlx_init();
+	w.window = mlx_new_window(w.mlx, w.width, w.height, 
 			"-+- Fdf project -+-");
-	mlx_key_hook(w->window, key_hook, &w);
-	mlx_mouse_hook(w->window, mouse_hook, &w);
-	draw_map(w, map);
-	mlx_loop(w->mlx);
+	mlx_key_hook(w.window, key_hook, &w);
+	mlx_mouse_hook(w.window, mouse_hook, &w);
+	draw_map(&w, map);
+	mlx_loop(w.mlx);
 }
 
 int			main(int argc, char **argv)
@@ -202,10 +218,7 @@ int			main(int argc, char **argv)
 		sp = ft_strsplit(line, ' ');
 		ft_map_push(&map, sp);
 	}
+	ft_map_push(&map, sp);
 	ft_print_list(map);
 	ft_create_window(map);
-	/*	mlx = mlx_init();
-		window = mlx_new_window(mlx, 300, 300, "Dialog");
-		mlx_loop(mlx);
-		*/
 }
