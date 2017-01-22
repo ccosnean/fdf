@@ -72,11 +72,10 @@ int			ft_bi_len(char **sp)
 	return (i + 1);
 }
 
-void		ft_map_push(t_map **map, char **sp)
+t_map		*ft_fill_values(t_map *map, char **sp)
 {
-	t_map	*h;
+	int 	i;
 	t_map	*new;
-	int		i;
 
 	new = ft_new_struct();
 	new->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
@@ -87,9 +86,22 @@ void		ft_map_push(t_map **map, char **sp)
 	{
 		new->z[i] = ft_atoi(sp[i]);
 		new->x[i] = i + 5;
-		new->y[i] = ft_list_len(*map) + 5;
+		new->y[i] = ft_list_len(map) + 5;
 	}
+	new->z[i] = 0;
+	new->x[i] = i + 5;
+	new->y[i] = ft_list_len(map) + 5;
 	new->len = i;
+	new->dist = 10;
+	return (new);
+}
+
+void		ft_map_push(t_map **map, char **sp)
+{
+	t_map	*h;
+	t_map	*new;
+
+	new = ft_fill_values(*map, sp);
 	if (*map == NULL)
 	{
 		*map = new;
@@ -156,10 +168,10 @@ void		draw_map(t_wind *w, t_map *map)
 {
 	int		i;
 	int		point[4];
-	int		dist = 10;
-	double	angle;
+	int		d;
 
-	angle = 0.2;
+	mlx_clear_window(w->mlx, w->window);
+	d = map->dist;
 	while (map)
 	{
 		i = 0;
@@ -167,37 +179,105 @@ void		draw_map(t_wind *w, t_map *map)
 		{
 			if (i < map->len)
 			{
-				point[0] = dist * (map->x[i] * cos(angle) - map->y[i] * sin(angle));
-				point[1] = dist * (map->x[i] * sin(angle) + map->y[i] * cos(angle));
-				point[2] = dist + dist * (map->x[i] * cos(angle) - map->y[i] * sin(angle));
-				point[3] = dist * (map->x[i] * sin(angle) + map->y[i] * cos(angle));
+				point[0] = d * (map->x[i]);
+				point[1] = d * (map->y[i]) - map->z[i];
+				point[2] = d * (map->x[i + 1]);
+				point[3] = d * (map->y[i + 1]) - map->z[i + 1];
 				draw_line(point, w->mlx, w->window);
 			}
 			if (map->next != NULL)
 			{
-				point[0] = dist * (map->next->x[i] * cos(angle) - map->next->y[i] * sin(angle));
-				point[1] = dist * (map->next->x[i] * sin(angle) + map->next->y[i] * cos(angle));
-				point[2] = dist * (map->next->x[i] * sin(angle) + map->next->y[i] * cos(angle));
-				point[3] = dist * (map->next->x[i] * cos(angle) - map->next->y[i] * sin(angle));
+				point[0] = d * (map->x[i]);
+				point[1] = d * (map->y[i]) - map->z[i];
+				point[2] = d * (map->next->x[i]);
+				point[3] = d * (map->next->y[i]) - map->next->z[i];
 				draw_line(point, w->mlx, w->window);
 			}
+
 			i++;
 		}
 		map = map->next;
 	}
 }
 
+void		rotate_z(t_map **map)
+{
+	int 	i;
+	t_map	*h;
+	double 	angle;
+	int 	d;
+
+	h = *map;
+	angle = 0.02;
+	d = h->dist;
+	while (h)
+	{
+		i = -1;
+		while (++i <= h->len)
+		{
+			h->x[i] =(h->x[i] * cos(angle) - h->y[i] * sin(angle));
+			h->y[i] =(h->x[i] * sin(angle) + h->y[i] * cos(angle));
+		}
+		h = h->next;
+	}
+}
+
+void		rotate_y(t_map **map)
+{
+	int 	i;
+	t_map	*h;
+	double 	angle;
+	int 	d;
+
+	h = *map;
+	angle = 0.02;
+	d = h->dist;
+	while (h)
+	{
+		i = -1;
+		while (++i <= h->len)
+		{
+			h->x[i] = (h->x[i] * cos(angle) + h->y[i] * sin(angle));
+			h->y[i] = (h->x[i] * (-sin(angle)) + h->y[i] * cos(angle));
+		}
+		h = h->next;
+	}
+}
+
+void		set_center(t_map **map)
+{
+	t_map	*h;
+
+	h = *map;
+	while (h)
+	{
+		h->center[0] = h->x[h->len - 1] - h->x[0];
+		h->center[1] = h->y[ft_list_len(*map) - 1] - h->y[0];
+		h = h->next;
+	}
+	return ;
+}
+
+void		set_initial(t_map **map)
+{
+	//rotate_z(map);
+	rotate_y(map);
+
+
+}
+
 void		ft_create_window(t_map *map)
 {
 	t_wind	w;
 
-	w.width = map->len * 40;
-	w.height = ft_list_len(map) * 40;
+	w.width = map->len * 50;
+	w.height = ft_list_len(map) * 50;
 	w.mlx = mlx_init();
 	w.window = mlx_new_window(w.mlx, w.width, w.height, 
 			"-+- Fdf project -+-");
 	mlx_key_hook(w.window, key_hook, &w);
 	mlx_mouse_hook(w.window, mouse_hook, &w);
+	set_initial(&map);
 	draw_map(&w, map);
 	mlx_loop(w.mlx);
 }
@@ -219,6 +299,6 @@ int			main(int argc, char **argv)
 		ft_map_push(&map, sp);
 	}
 	ft_map_push(&map, sp);
-	ft_print_list(map);
+	//ft_print_list(map);
 	ft_create_window(map);
 }

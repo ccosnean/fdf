@@ -22,6 +22,8 @@ typedef struct		s_map{
 	int				*x;
 	int				*y;
 	int				center[2];
+	double			angle;
+	int				dist;
 	int				len;
 	struct s_map	*next;
 }					t_map;
