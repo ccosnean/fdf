@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/30 18:45:44 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/20 15:18:05 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/23 13:17:43 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ int			ft_list_len(t_map *map)
 	}
 	return (len);
 }
+
+
 
 int			ft_usage(void)
 {
@@ -92,7 +94,7 @@ t_map		*ft_fill_values(t_map *map, char **sp)
 	new->x[i] = i + 5;
 	new->y[i] = ft_list_len(map) + 5;
 	new->len = i;
-	new->dist = 10;
+	new->dist = 5;
 	return (new);
 }
 
@@ -133,10 +135,12 @@ void		ft_print_list(t_map *map)
 	}
 }
 
-int			mouse_hook(int	key, int x, int y, t_wind *w)
+int			mouse_hook(int	key, int x, int y, t_map *map)
 {
 	if (key == 1)
+	{
 		printf("Click!");
+	}
 	else if (key == 2)
 		printf("Right click!");
 	else if (key == 3)
@@ -150,98 +154,9 @@ int			mouse_hook(int	key, int x, int y, t_wind *w)
 	else if (key == 7)
 		printf("Scroll left!");
 	printf("(%d, %d)\n", x, y);
-	if (w)
+	if (map)
 		return (0);
 	return (0);
-}
-
-int			key_hook(int key, t_wind *w)
-{
-	if (key == 53) // ESC
-		exit(1);
-	if (w)
-		return (0);
-	return (0);
-}
-
-void		draw_map(t_wind *w, t_map *map)
-{
-	int		i;
-	int		point[4];
-	int		d;
-
-	mlx_clear_window(w->mlx, w->window);
-	d = map->dist;
-	while (map)
-	{
-		i = 0;
-		while (i <= map->len)
-		{
-			if (i < map->len)
-			{
-				point[0] = d * (map->x[i]);
-				point[1] = d * (map->y[i]) - map->z[i];
-				point[2] = d * (map->x[i + 1]);
-				point[3] = d * (map->y[i + 1]) - map->z[i + 1];
-				draw_line(point, w->mlx, w->window);
-			}
-			if (map->next != NULL)
-			{
-				point[0] = d * (map->x[i]);
-				point[1] = d * (map->y[i]) - map->z[i];
-				point[2] = d * (map->next->x[i]);
-				point[3] = d * (map->next->y[i]) - map->next->z[i];
-				draw_line(point, w->mlx, w->window);
-			}
-
-			i++;
-		}
-		map = map->next;
-	}
-}
-
-void		rotate_z(t_map **map)
-{
-	int 	i;
-	t_map	*h;
-	double 	angle;
-	int 	d;
-
-	h = *map;
-	angle = 0.02;
-	d = h->dist;
-	while (h)
-	{
-		i = -1;
-		while (++i <= h->len)
-		{
-			h->x[i] =(h->x[i] * cos(angle) - h->y[i] * sin(angle));
-			h->y[i] =(h->x[i] * sin(angle) + h->y[i] * cos(angle));
-		}
-		h = h->next;
-	}
-}
-
-void		rotate_y(t_map **map)
-{
-	int 	i;
-	t_map	*h;
-	double 	angle;
-	int 	d;
-
-	h = *map;
-	angle = 0.02;
-	d = h->dist;
-	while (h)
-	{
-		i = -1;
-		while (++i <= h->len)
-		{
-			h->x[i] = (h->x[i] * cos(angle) + h->y[i] * sin(angle));
-			h->y[i] = (h->x[i] * (-sin(angle)) + h->y[i] * cos(angle));
-		}
-		h = h->next;
-	}
 }
 
 void		set_center(t_map **map)
@@ -258,27 +173,144 @@ void		set_center(t_map **map)
 	return ;
 }
 
-void		set_initial(t_map **map)
+void		rotate_z(t_map **map)
 {
-	//rotate_z(map);
-	rotate_y(map);
+	int 	i;
+	t_map	*h;
+	double 	angle;
+	int 	d;
 
-
+	h = *map;
+	angle = 0.0001;
+	d = h->dist;
+	set_center(map);
+	h->dist = 1;
+	while (h)
+	{
+		i = -1;
+		while (++i <= h->len)
+		{
+			h->x[i] = ((h->x[i]) * cos(angle) - (h->y[i]) * sin(angle));
+			h->y[i] = ((h->x[i]) * sin(angle) + (h->y[i]) * cos(angle));
+		}
+		h = h->next;
+	}
 }
 
-void		ft_create_window(t_map *map)
+void		rotate_y(t_map **map)
+{
+	int 	i;
+	t_map	*h;
+	double 	angle;
+	int 	d;
+
+	h = *map;
+	angle = 0.01;
+	set_center(map);
+	d = h->dist;
+	while (h)
+	{
+		i = -1;
+		while (++i <= h->len)
+		{
+			h->x[i] = d * ((h->x[i]) * cos(angle) + (h->y[i]) * sin(angle));
+			h->y[i] = d * ((h->x[i]) * (-sin(angle)) + (h->y[i]) * cos(angle));
+		}
+		h = h->next;
+	}
+}
+
+int			key_hook(int key, t_map *map)
+{
+	printf("key: %i\n", key);
+	if (key == 53) // ESC
+		exit(1);
+	if (key == 6)
+	{
+		rotate_z(&map);
+		draw_map(map);
+	}
+	if (key == 16)
+	{
+		rotate_y(&map);
+		draw_map(map);
+	}
+	if (map)
+		return (0);
+	return (0);
+}
+
+void		draw_map(t_map *map)
+{
+	int		i;
+	int		point[4];
+	int		d;
+
+	mlx_clear_window(map->mlx, map->window);
+	d = map->dist;
+	while (map)
+	{
+		i = 0;
+		while (i <= map->len)
+		{
+			if (i < map->len)
+			{
+				point[0] =(map->x[i]);
+				point[1] =(map->y[i]) - map->z[i] * 2;
+				point[2] =(map->x[i + 1]);
+				point[3] =(map->y[i + 1]) - map->z[i + 1] * 2;
+				draw_line(point, map->mlx, map->window);
+			}
+			if (map->next != NULL)
+			{
+				point[0] =(map->x[i]);
+				point[1] =(map->y[i]) - map->z[i] * 2;
+				point[2] =(map->next->x[i]);
+				point[3] =(map->next->y[i]) - map->next->z[i] * 2;
+				draw_line(point, map->mlx, map->window);
+			}
+			i++;
+		}
+		map = map->next;
+	}
+}
+
+
+
+void		set_initial(t_map **map)
+{
+	rotate_z(map);
+}
+
+void		link_wind_to_map(t_wind w, t_map **map)
+{
+	t_map *h;
+
+	h = *map;
+	while (h)
+	{
+		h->mlx = w.mlx;
+		h->window = w.window;
+		h = h->next;
+	}
+}
+
+void		ft_create_window(t_map **h)
 {
 	t_wind	w;
+	t_map 	*map;
 
-	w.width = map->len * 50;
-	w.height = ft_list_len(map) * 50;
+	map = *h;
+	w.width = map->len * (map->dist + 6);
+	w.height = ft_list_len(map) * (map->dist + 6);
 	w.mlx = mlx_init();
 	w.window = mlx_new_window(w.mlx, w.width, w.height, 
 			"-+- Fdf project -+-");
-	mlx_key_hook(w.window, key_hook, &w);
-	mlx_mouse_hook(w.window, mouse_hook, &w);
-	set_initial(&map);
-	draw_map(&w, map);
+	link_wind_to_map(w, h);
+	mlx_key_hook(w.window, key_hook, map);
+	mlx_mouse_hook(w.window, mouse_hook, map);
+	set_initial(h);
+	draw_map(map);
 	mlx_loop(w.mlx);
 }
 
@@ -300,5 +332,5 @@ int			main(int argc, char **argv)
 	}
 	ft_map_push(&map, sp);
 	//ft_print_list(map);
-	ft_create_window(map);
+	ft_create_window(&map);
 }
