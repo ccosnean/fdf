@@ -10,8 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#define ABS(x) x < 0 ? -x : x
-#include "mlx.h"
 #include "fdf.h"
 #include <math.h>
 #include <stdlib.h>
@@ -31,8 +29,6 @@ int			ft_list_len(t_map *map)
 	}
 	return (len);
 }
-
-
 
 int			ft_usage(void)
 {
@@ -74,6 +70,30 @@ int			ft_bi_len(char **sp)
 	return (i + 1);
 }
 
+void		translate(t_map **map, char dir)
+{
+	t_map 	*h;
+	int	i;
+
+	h = *map;
+	while (h)
+	{
+		i = -1;
+		while (++i <= h->len)
+		{
+			if (dir == 'r')
+				h->x[i] += 5;
+			else if (dir == 'l')
+				h->x[i] -= 5;
+			else if (dir == 'u')
+				h->y[i] -= 5;
+			else if (dir == 'd')
+				h->y[i] += 5;
+		}
+		h = h->next;
+	}
+}
+
 t_map		*ft_fill_values(t_map *map, char **sp)
 {
 	int 	i;
@@ -84,17 +104,17 @@ t_map		*ft_fill_values(t_map *map, char **sp)
 	new->x = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	new->y = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	i = -1;
+	new->dist = 10;
 	while (sp[++i])
 	{
 		new->z[i] = ft_atoi(sp[i]);
-		new->x[i] = i + 5;
-		new->y[i] = ft_list_len(map) + 5;
+		new->x[i] = i * new->dist + 5;
+		new->y[i] = (ft_list_len(map) * new->dist + 5) - new->z[i];
 	}
 	new->z[i] = 0;
-	new->x[i] = i + 5;
-	new->y[i] = ft_list_len(map) + 5;
+	new->x[i] = i * new->dist + 5;
+	new->y[i] = (ft_list_len(map) * new->dist + 5) - new->z[i];
 	new->len = i;
-	new->dist = 5;
 	return (new);
 }
 
@@ -135,7 +155,7 @@ void		ft_print_list(t_map *map)
 	}
 }
 
-int			mouse_hook(int	key, int x, int y, t_map *map)
+int		mouse_hook(int	key, int x, int y, t_map *map)
 {
 	if (key == 1)
 	{
@@ -166,8 +186,8 @@ void		set_center(t_map **map)
 	h = *map;
 	while (h)
 	{
-		h->center[0] = h->x[h->len - 1] - h->x[0];
-		h->center[1] = h->y[ft_list_len(*map) - 1] - h->y[0];
+		h->center[0] = (h->x[h->len] + h->x[0]) / 2;
+		h->center[1] = (h->y[ft_list_len(*map)] + h->y[0]) / 2;
 		h = h->next;
 	}
 	return ;
@@ -181,7 +201,7 @@ void		rotate_z(t_map **map)
 	int 	d;
 
 	h = *map;
-	angle = 0.0001;
+	angle = 0.1;
 	d = h->dist;
 	set_center(map);
 	h->dist = 1;
@@ -190,8 +210,12 @@ void		rotate_z(t_map **map)
 		i = -1;
 		while (++i <= h->len)
 		{
-			h->x[i] = ((h->x[i]) * cos(angle) - (h->y[i]) * sin(angle));
-			h->y[i] = ((h->x[i]) * sin(angle) + (h->y[i]) * cos(angle));
+			h->x[i] -= h->center[0];
+			h->y[i] -= h->center[1];
+			h->x[i] = h->x[i] * cos(angle) - h->y[i] * sin(angle);
+			h->y[i] = h->x[i] * sin(angle) + h->y[i] * cos(angle);
+			h->x[i] += h->center[0];
+			h->y[i] += h->center[1];
 		}
 		h = h->next;
 	}
@@ -205,7 +229,7 @@ void		rotate_y(t_map **map)
 	int 	d;
 
 	h = *map;
-	angle = 0.01;
+	angle = 0.1;
 	set_center(map);
 	d = h->dist;
 	while (h)
@@ -213,8 +237,10 @@ void		rotate_y(t_map **map)
 		i = -1;
 		while (++i <= h->len)
 		{
-			h->x[i] = d * ((h->x[i]) * cos(angle) + (h->y[i]) * sin(angle));
-			h->y[i] = d * ((h->x[i]) * (-sin(angle)) + (h->y[i]) * cos(angle));
+			h->x[i] -= h->center[0];
+			h->x[i] = (h->x[i] * cos(angle) + h->z[i] * sin(angle));
+			h->z[i] = (h->x[i] * sin(angle) - h->z[i] * cos(angle));
+			h->x[i] += h->center[0];
 		}
 		h = h->next;
 	}
@@ -233,6 +259,26 @@ int			key_hook(int key, t_map *map)
 	if (key == 16)
 	{
 		rotate_y(&map);
+		draw_map(map);
+	}
+	if (key == 124)
+	{
+		translate(&map, 'r');
+		draw_map(map);
+	}
+	if (key == 123)
+	{
+		translate(&map, 'l');
+		draw_map(map);
+	}
+	if (key == 126)
+	{
+		translate(&map, 'u');
+		draw_map(map);
+	}
+	if (key == 125)
+	{
+		translate(&map, 'd');
 		draw_map(map);
 	}
 	if (map)
@@ -255,18 +301,18 @@ void		draw_map(t_map *map)
 		{
 			if (i < map->len)
 			{
-				point[0] =(map->x[i]);
-				point[1] =(map->y[i]) - map->z[i] * 2;
-				point[2] =(map->x[i + 1]);
-				point[3] =(map->y[i + 1]) - map->z[i + 1] * 2;
+				point[0] = (map->x[i]);
+				point[1] = (map->y[i]);
+				point[2] = (map->x[i + 1]);
+				point[3] = (map->y[i + 1]);
 				draw_line(point, map->mlx, map->window);
 			}
 			if (map->next != NULL)
 			{
-				point[0] =(map->x[i]);
-				point[1] =(map->y[i]) - map->z[i] * 2;
-				point[2] =(map->next->x[i]);
-				point[3] =(map->next->y[i]) - map->next->z[i] * 2;
+				point[0] = (map->x[i]);
+				point[1] = (map->y[i]);
+				point[2] = (map->next->x[i]);
+				point[3] = (map->next->y[i]);
 				draw_line(point, map->mlx, map->window);
 			}
 			i++;
@@ -279,7 +325,7 @@ void		draw_map(t_map *map)
 
 void		set_initial(t_map **map)
 {
-	rotate_z(map);
+	//	rotate_z(map);
 }
 
 void		link_wind_to_map(t_wind w, t_map **map)
