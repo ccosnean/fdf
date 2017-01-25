@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/01/10 15:40:30 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/20 13:47:44 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/25 14:38:24 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,20 @@ typedef struct		s_map{
 	int				*z;
 	int				*x;
 	int				*y;
+	int				*z_i;
+	int				*x_i;
+	int				*y_i;
 	int				center[2];
-	double			angle;
+	int				ax;
+	int				ay;	
+	int				az;
 	int				dist;
 	int				len;
 	struct s_map	*next;
 	void			*window;
 	void			*mlx;
+	int				h;
+	int				w;
 }					t_map;
 
 void				draw_line(int vect[4], void *mlx, void *window);

@@ -6,14 +6,13 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/01/10 15:37:16 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/19 18:35:12 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/25 16:07:50 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h>
 #include "fdf.h"
 
-//vect[0] = x0, vect[1] = y0, vect[2] = x1, vect[3] = y1
 void	draw_line(int vect[4], void *mlx, void *window)
 {
 	int v[6];
@@ -41,4 +40,3 @@ void	draw_line(int vect[4], void *mlx, void *window)
 		}
 	}
 }
-
