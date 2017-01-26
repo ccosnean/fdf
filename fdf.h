@@ -27,7 +27,8 @@ typedef struct		s_map{
 	int				*z;
 	int				*x;
 	int				*y;
-    int             *col;
+    int             *col1;
+    int             *col2;
 	int				*z_i;
 	int				*x_i;
 	int				*y_i;

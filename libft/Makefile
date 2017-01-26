@@ -6,7 +6,7 @@
 #    By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/05 13:02:21 by ccosnean          #+#    #+#              #
-#    Updated: 2017/01/11 15:59:01 by ccosnean         ###   ########.fr        #
+#    Updated: 2017/01/26 15:03:14 by ccosnean         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,21 +28,23 @@ CC = gcc
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	@echo "Creating libft.a..."
+	@printf "\033[0;32mLIBFT:\033[0m Creating libft.a..."
 	@ar -rc $(NAME) $(OBJ)
 	@ranlib $(NAME)
-	@echo "Created!"
+	@printf "\t[\033[0;32mCreated\033[0m]\n"
 
 $(OBJ) :
 	@$(CC) -c $(FLAGS) -o $@ $*.c
 
 clean :
-	@echo "Files.o are deleted"
+	@printf "\033[0;32mLIBFT:\033[0m Deleting Files.o"
 	@rm -rf $(OBJ)
+	@printf "\t\t[\033[0;31mDeleted\033[0m]\n"
 
 fclean: clean
-	@echo "libft.a is deleted"
+	@printf "\033[0;32mLIBFT:\033[0m Deleting libft.a"
 	@rm -rf $(NAME)
+	@printf "\t\t[\033[0;31mDeleted\033[0m]\n"
 
 re: fclean all
 

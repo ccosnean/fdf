@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/30 18:45:44 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/25 17:22:38 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/26 14:33:50 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,10 +66,11 @@ t_map		*ft_new_struct(char **sp)
 
 	ret = (t_map *)malloc(sizeof(t_map));
 	ret->next = NULL;
-    ret->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	ret->x = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	ret->y = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	ret->col = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->col1 = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->col2 = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	ret->z_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	ret->x_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
 	ret->y_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
@@ -110,40 +111,41 @@ int			ft_divide(int a, int b)
 
 int         ft_max(t_map *h, int i)
 {
-    int     max;
-    
-    max = h->z_i[i];
-    while (i--)
-    {
-        if (max < h->z_i[i])
-            max = h->z_i[i];
-    }
-    return (max);
+	int     max;
+
+	max = h->z_i[i];
+	while (i--)
+	{
+		if (max < h->z_i[i])
+			max = h->z_i[i];
+	}
+	return (max);
 }
 
 void        set_colors(t_map **map)
 {
-    int     i;
-    t_map   *h;
-    
-    h = *map;
-    while (h->next)
-    {
-        i = -1;
-        while (++i < h->len)
-        {
-            if (h->z_i[i] != h->z_i[i + 1])
-                h->col[i] = 0x00FF0000 >> h->z_i[i];
-            else
-                h->col[i] = 0x00FFFFFF;
-            
-			if (h->z_i[i] != h->next->z_i[i])
-                h->col[i] = 0x00FF0000 >> h->z_i[i];
-            else
-                h->col[i] = 0x00FFFFFF;
-        }
-        h = h->next;
-    }
+	int     i;
+	t_map   *h;
+
+	h = *map;
+	while (h)
+	{
+		i = -1;
+		while (++i < h->len)
+		{
+			if (h->z_i[i] != h->z_i[i + 1])
+				h->col1[i] = 0x00993333 >> (h->z_i[i] > h->z_i[i + 1] ?
+						h->z_i[i] : h->z_i[i + 1]);
+			else
+				h->col1[i] = 0x00FFFFFF;
+			if (h->next && (h->z_i[i] != h->next->z_i[i]))
+				h->col2[i] =  0x00993333 >> (h->z_i[i] > h->next->z_i[i] ?
+						h->z_i[i] : h->next->z_i[i]);
+			else
+				h->col2[i] = 0x00FFFFFF;
+		}
+		h = h->next;
+	}
 }
 
 t_map		*ft_fill_values(t_map *map, char **sp)
@@ -153,13 +155,16 @@ t_map		*ft_fill_values(t_map *map, char **sp)
 
 	new = ft_new_struct(sp);
 	i = -1;
-    new->dist = ft_bi_len(sp) > 20 ? 10 : ft_bi_len(sp);
+	new->dist = ft_bi_len(sp) > 20 ? 10 : ft_bi_len(sp);
 	while (sp[++i])
 	{
 		new->z_i[i] = ft_atoi(sp[i]) * (new->dist / 2);
 		new->x_i[i] = i * new->dist;
 		new->y_i[i] = ft_list_len(map) * new->dist;
 	}
+	new->z_i[i] = 0;
+	new->x_i[i] = i * new->dist;
+	new->y_i[i] = ft_list_len(map) * new->dist;
 	new->len = i;
 	return (new);
 }
@@ -348,45 +353,43 @@ void		translate_to_center(t_map **map)
 
 void        ft_mlx_rect(int x, int y, int color, t_map *map)
 {
-    int     i;
-    int     j;
-    
-    i = -1;
-    while (++i < x)
-    {
-        j = -1;
-        while (++j < y)
-            mlx_pixel_put(map->mlx, map->window, i, j, color);
-    }
-    i = 3;
-    while (++i < x - 3)
-    {
-        j = 3;
-        while (++j < y - 3)
-            mlx_pixel_put(map->mlx, map->window, i, j, 0x00000000);
-    }
+	int     i;
+	int     j;
+
+	i = -1;
+	while (++i < x)
+	{
+		j = -1;
+		while (++j < y)
+			mlx_pixel_put(map->mlx, map->window, i, j, color);
+	}
+	i = 3;
+	while (++i < x - 3)
+	{
+		j = 3;
+		while (++j < y - 3)
+			mlx_pixel_put(map->mlx, map->window, i, j, 0x00000000);
+	}
 }
 
 void        toogle_help(t_map *map)
 {
-    static int boo = 1;
-    
-    if (boo)
-    {
-        ft_mlx_rect(205, 150, 0x00cc6600, map);
-        mlx_string_put(map->mlx, map->window, 60, 10, 0x00cc6600, "+ Help +");
-        mlx_string_put(map->mlx, map->window, 10, 35, 0x00FFFFFF, "z,a:for z rotation");
-        mlx_string_put(map->mlx, map->window, 10, 55, 0x00FFFFFF, "x,s:for x rotation");
-        mlx_string_put(map->mlx, map->window, 10, 75, 0x00FFFFFF, "y,t:for y rotation");
-        mlx_string_put(map->mlx, map->window, 10, 95, 0x00FFFFFF, "arrows to move");
-        mlx_string_put(map->mlx, map->window, 10, 115, 0x00FFFFFF, "c: bring to center");
-    }
-    else
-    {
-        mlx_clear_window(map->mlx, map->window);
-        draw_map(map);
-    }
-    boo = !boo;
+	static int boo = 1;
+
+	if (boo)
+	{
+		ft_mlx_rect(205, 170, 0x00cc6600, map);
+		mlx_string_put(map->mlx, map->window, 60, 10, 0x00cc6600, "+ Help +");
+		mlx_string_put(map->mlx, map->window, 10, 35, 0x00FFFFFF, "z,a:for z rotation");
+		mlx_string_put(map->mlx, map->window, 10, 55, 0x00FFFFFF, "x,s:for x rotation");
+		mlx_string_put(map->mlx, map->window, 10, 75, 0x00FFFFFF, "y,t:for y rotation");
+		mlx_string_put(map->mlx, map->window, 10, 95, 0x00FFFFFF, "arrows to move");
+		mlx_string_put(map->mlx, map->window, 10, 115, 0x00FFFFFF, "c: bring to center");
+		mlx_string_put(map->mlx, map->window, 10, 135, 0x00FFFFFF, "h: toogle menu");
+	}
+	else
+		draw_map(map);
+	boo = !boo;
 }
 
 int			key_hook(int key, t_map *map)
@@ -400,25 +403,25 @@ int			key_hook(int key, t_map *map)
 		rotate_y(&map);
 		rotate_x(&map);
 		rotate_z(&map);
-        translate_to_center(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
-    if (key == 0) //a
+	if (key == 0) //a
 	{
 		map->az -= 10; 
 		rotate_y(&map);
 		rotate_x(&map);
 		rotate_z(&map);
-        translate_to_center(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 7) //x
 	{
 		map->ax += 10;
-        rotate_y(&map);
+		rotate_y(&map);
 		rotate_x(&map);
-        rotate_z(&map);
-        translate_to_center(&map);
+		rotate_z(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 1) //s
@@ -426,7 +429,7 @@ int			key_hook(int key, t_map *map)
 		map->ax -= 10;
 		rotate_y(&map);
 		rotate_x(&map);
-        rotate_z(&map);
+		rotate_z(&map);
 		translate_to_center(&map);
 		draw_map(map);
 	}
@@ -435,17 +438,17 @@ int			key_hook(int key, t_map *map)
 		map->ay += 10;
 		rotate_y(&map);
 		rotate_x(&map);
-        rotate_z(&map);
-        translate_to_center(&map);
+		rotate_z(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
-    if (key == 17) //t
+	if (key == 17) //t
 	{
 		map->ay -= 10;
 		rotate_y(&map);
 		rotate_x(&map);
-        rotate_z(&map);
-        translate_to_center(&map);
+		rotate_z(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 124)
@@ -470,14 +473,14 @@ int			key_hook(int key, t_map *map)
 	}
 	if (key == 8) //c
 	{
-        rotate_y(&map);
+		rotate_y(&map);
 		rotate_x(&map);
-        rotate_z(&map);
+		rotate_z(&map);
 		translate_to_center(&map);
 		draw_map(map);
 	}
-    if (key == 4) //h
-        toogle_help(map);
+	if (key == 4) //h
+		toogle_help(map);
 	return (0);
 }
 
@@ -498,7 +501,7 @@ void		draw_map(t_map *map)
 				point[1] = (map->y[i]);
 				point[2] = (map->x[i + 1]);
 				point[3] = (map->y[i + 1]);
-				draw_line(point, map, map->col[i]);
+				draw_line(point, map, map->col1[i]);
 			}
 			if (map->next != NULL)
 			{
@@ -506,7 +509,7 @@ void		draw_map(t_map *map)
 				point[1] = (map->y[i]);
 				point[2] = (map->next->x[i]);
 				point[3] = (map->next->y[i]);
-				draw_line(point, map, map->next->col[i]);
+				draw_line(point, map, map->col2[i]);
 			}
 			i++;
 		}
@@ -516,11 +519,12 @@ void		draw_map(t_map *map)
 
 void		set_initial(t_map *map)
 {
-    rotate_y(&map);
-    rotate_x(&map);
-    rotate_z(&map);
-    translate_to_center(&map);
-    draw_map(map);
+	rotate_y(&map);
+	rotate_x(&map);
+	rotate_z(&map);
+	translate_to_center(&map);
+	draw_map(map);
+	toogle_help(map);
 }
 
 void		link_wind_to_map(t_wind w, t_map **map)
@@ -544,16 +548,16 @@ void		ft_create_window(t_map **h)
 	t_map 	*map;
 
 	map = *h;
-	w.width = (map->len > 20 ? 20 : map->len) * (map->dist + 15);
-	w.height = (ft_list_len(map) > 20 ? 15 : ft_list_len(map)) * (map->dist + 15);
+	w.width = 1200;// (map->len > 20 ? 60 : map->len) * (map->dist + 15);
+	w.height = 800;//(ft_list_len(map) > 20 ? 40 : ft_list_len(map)) * (map->dist + 15);
 	w.mlx = mlx_init();
 	w.window = mlx_new_window(w.mlx, w.width, w.height, 
 			"-+- Fdf project -+-");
 	link_wind_to_map(w, h);
 	mlx_key_hook(w.window, key_hook, map);
 	mlx_mouse_hook(w.window, mouse_hook, map);
-    set_colors(&map);
-    set_initial(map);
+	set_colors(&map);
+	set_initial(map);
 	mlx_loop(w.mlx);
 }
 
@@ -573,5 +577,6 @@ int			main(int argc, char **argv)
 		sp = ft_strsplit(line, ' ');
 		ft_map_push(&map, sp);
 	}
+	ft_map_push(&map, sp);
 	ft_create_window(&map);
 }
