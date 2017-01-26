@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/30 18:45:44 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/26 14:33:50 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/26 15:24:29 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,6 +143,14 @@ void        set_colors(t_map **map)
 						h->z_i[i] : h->next->z_i[i]);
 			else
 				h->col2[i] = 0x00FFFFFF;
+			if (h->col1[i] <= 0x003333ff)
+				h->col1[i] = 0x00993333 << (h->z_i[i] > h->z_i[i + 1] ?
+						h->z_i[i] : h->z_i[i + 1]);
+			if (h->col2[i] <= 0x003333ff)
+				h->col2[i] =  0x00993333 << (h->z_i[i] > h->next->z_i[i] ?
+						h->z_i[i] : h->next->z_i[i]);
+
+
 		}
 		h = h->next;
 	}
