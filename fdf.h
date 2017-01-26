@@ -27,6 +27,7 @@ typedef struct		s_map{
 	int				*z;
 	int				*x;
 	int				*y;
+    int             *col;
 	int				*z_i;
 	int				*x_i;
 	int				*y_i;
@@ -43,7 +44,7 @@ typedef struct		s_map{
 	int				w;
 }					t_map;
 
-void				draw_line(int vect[4], void *mlx, void *window);
+void				draw_line(int vect[4], t_map *m, int col);
 void				draw_map(t_map *map);
 void				rotate_z(t_map **map);
 

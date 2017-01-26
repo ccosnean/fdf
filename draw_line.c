@@ -13,9 +13,9 @@
 #include <stdlib.h>
 #include "fdf.h"
 
-void	draw_line(int vect[4], void *mlx, void *window)
+void	draw_line(int vect[4], t_map *m, int col)
 {
-	int v[6];
+	int v[7];
 
 	v[0] = abs(vect[2] - vect[0]);
 	v[1] = vect[0] < vect[2] ? 1 : -1;
@@ -24,7 +24,7 @@ void	draw_line(int vect[4], void *mlx, void *window)
 	v[4] = (v[0] > v[2] ? v[0] : -v[2]) / 2;
 	while (1)
 	{
-		mlx_pixel_put(mlx, window, vect[0], vect[1], 0x00FFFFFF);
+		mlx_pixel_put(m->mlx, m->window, vect[0], vect[1], col);
 		v[5] = v[4];
 		if ((vect[0] == vect[2]) && (vect[1] == vect[3]))
 			break ;

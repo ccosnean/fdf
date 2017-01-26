@@ -50,16 +50,6 @@ int			ft_open(char *file)
 		return (fd);
 }
 
-t_map		*ft_new_struct(void)
-{
-	t_map	*ret;
-
-	ret = (t_map *)malloc(sizeof(t_map));
-	ret->next = NULL;
-	ret->len = 0;
-	return (ret);
-}
-
 int			ft_bi_len(char **sp)
 {
 	int		i;
@@ -68,6 +58,22 @@ int			ft_bi_len(char **sp)
 	while (sp[i])
 		i++;
 	return (i + 1);
+}
+
+t_map		*ft_new_struct(char **sp)
+{
+	t_map	*ret;
+
+	ret = (t_map *)malloc(sizeof(t_map));
+	ret->next = NULL;
+    ret->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->x = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->y = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->col = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->z_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->x_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	ret->y_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	return (ret);
 }
 
 void		translate(t_map **map, char dir)
@@ -102,35 +108,58 @@ int			ft_divide(int a, int b)
 		return (a / b);
 }
 
+int         ft_max(t_map *h, int i)
+{
+    int     max;
+    
+    max = h->z_i[i];
+    while (i--)
+    {
+        if (max < h->z_i[i])
+            max = h->z_i[i];
+    }
+    return (max);
+}
+
+void        set_colors(t_map **map)
+{
+    int     i;
+    t_map   *h;
+    
+    h = *map;
+    while (h->next)
+    {
+        i = -1;
+        while (++i < h->len)
+        {
+            if (h->z_i[i] != h->z_i[i + 1])
+                h->col[i] = 0x00FF0000 >> h->z_i[i];
+            else
+                h->col[i] = 0x00FFFFFF;
+            
+			if (h->z_i[i] != h->next->z_i[i])
+                h->col[i] = 0x00FF0000 >> h->z_i[i];
+            else
+                h->col[i] = 0x00FFFFFF;
+        }
+        h = h->next;
+    }
+}
+
 t_map		*ft_fill_values(t_map *map, char **sp)
 {
 	int 	i;
 	t_map	*new;
 
-	new = ft_new_struct();
-	new->z = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	new->x = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	new->y = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	new->z_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	new->x_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
-	new->y_i = (int *)malloc(sizeof(int) * ft_bi_len(sp));
+	new = ft_new_struct(sp);
 	i = -1;
-	new->dist = 10;
+    new->dist = ft_bi_len(sp) > 20 ? 10 : ft_bi_len(sp);
 	while (sp[++i])
 	{
-		new->z_i[i] = ft_atoi(sp[i]);
+		new->z_i[i] = ft_atoi(sp[i]) * (new->dist / 2);
 		new->x_i[i] = i * new->dist;
 		new->y_i[i] = ft_list_len(map) * new->dist;
-		new->z[i] = new->z_i[i];
-		new->x[i] = new->x_i[i];
-		new->y[i] = new->y_i[i];
 	}
-	new->z_i[i] = 0;
-	new->x_i[i] = i * new->dist;
-	new->y_i[i] = ft_list_len(map) * new->dist;
-	new->z[i] = new->z_i[i];
-	new->x[i] = new->x_i[i];
-	new->y[i] = new->y_i[i];
 	new->len = i;
 	return (new);
 }
@@ -141,9 +170,9 @@ void		ft_map_push(t_map **map, char **sp)
 	t_map	*new;
 
 	new = ft_fill_values(*map, sp);
-	new->ax = 10;
+	new->ax = 40;
 	new->ay = 10;
-	new->az = 10;
+	new->az = 20;
 	if (*map == NULL)
 	{
 		*map = new;
@@ -241,8 +270,8 @@ void		rotate_z(t_map **map)
 		{
 			h->x_i[i] -= h->center[0];
 			h->y_i[i] -= h->center[1];
-			h->x[i] = (h->x_i[i] * cos(angle) - h->y_i[i] * sin(angle));
-			h->y[i] = (h->x_i[i] * sin(angle) + h->y_i[i] * cos(angle));
+			h->x[i] = (h->x[i] * cos(angle) - h->y[i] * sin(angle));
+			h->y[i] = (h->x[i] * sin(angle) + h->y[i] * cos(angle));
 			h->x_i[i] += h->center[0];
 			h->y_i[i] += h->center[1];
 		}
@@ -310,8 +339,6 @@ void		translate_to_center(t_map **map)
 		i = -1;
 		while (++i < h->len)
 		{
-			h->x[i] -= h->center[0];
-			h->y[i] -= h->center[1];
 			h->x[i] = h->x[i] + h->w / 2;
 			h->y[i] = h->y[i] + h->h / 2;
 		}
@@ -319,45 +346,106 @@ void		translate_to_center(t_map **map)
 	}
 }
 
+void        ft_mlx_rect(int x, int y, int color, t_map *map)
+{
+    int     i;
+    int     j;
+    
+    i = -1;
+    while (++i < x)
+    {
+        j = -1;
+        while (++j < y)
+            mlx_pixel_put(map->mlx, map->window, i, j, color);
+    }
+    i = 3;
+    while (++i < x - 3)
+    {
+        j = 3;
+        while (++j < y - 3)
+            mlx_pixel_put(map->mlx, map->window, i, j, 0x00000000);
+    }
+}
+
+void        toogle_help(t_map *map)
+{
+    static int boo = 1;
+    
+    if (boo)
+    {
+        ft_mlx_rect(205, 150, 0x00cc6600, map);
+        mlx_string_put(map->mlx, map->window, 60, 10, 0x00cc6600, "+ Help +");
+        mlx_string_put(map->mlx, map->window, 10, 35, 0x00FFFFFF, "z,a:for z rotation");
+        mlx_string_put(map->mlx, map->window, 10, 55, 0x00FFFFFF, "x,s:for x rotation");
+        mlx_string_put(map->mlx, map->window, 10, 75, 0x00FFFFFF, "y,t:for y rotation");
+        mlx_string_put(map->mlx, map->window, 10, 95, 0x00FFFFFF, "arrows to move");
+        mlx_string_put(map->mlx, map->window, 10, 115, 0x00FFFFFF, "c: bring to center");
+    }
+    else
+    {
+        mlx_clear_window(map->mlx, map->window);
+        draw_map(map);
+    }
+    boo = !boo;
+}
+
 int			key_hook(int key, t_map *map)
 {
-	printf("key: %i\n", key);
+	//printf("key: %i\n", key);
 	if (key == 53) 
 		exit(1);
 	if (key == 6) //z
 	{
 		map->az += 10; 
-		// rotate_y(&map);
+		rotate_y(&map);
+		rotate_x(&map);
 		rotate_z(&map);
-		//rotate_x(&map);
-		//translate_to_center(&map);
+        translate_to_center(&map);
+		draw_map(map);
+	}
+    if (key == 0) //a
+	{
+		map->az -= 10; 
+		rotate_y(&map);
+		rotate_x(&map);
+		rotate_z(&map);
+        translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 7) //x
 	{
 		map->ax += 10;
-		// rotate_y(&map);
+        rotate_y(&map);
 		rotate_x(&map);
-		// rotate_z(&map);
-		// translate_to_center(&map);
+        rotate_z(&map);
+        translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 1) //s
 	{
 		map->ax -= 10;
-		//rotate_y(&map);
+		rotate_y(&map);
 		rotate_x(&map);
-		// rotate_z(&map);
-		// translate_to_center(&map);
+        rotate_z(&map);
+		translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 16) //y
 	{
 		map->ay += 10;
-		//rotate_x(&map);
 		rotate_y(&map);
-		// rotate_z(&map);
-		// translate_to_center(&map);
+		rotate_x(&map);
+        rotate_z(&map);
+        translate_to_center(&map);
+		draw_map(map);
+	}
+    if (key == 17) //t
+	{
+		map->ay -= 10;
+		rotate_y(&map);
+		rotate_x(&map);
+        rotate_z(&map);
+        translate_to_center(&map);
 		draw_map(map);
 	}
 	if (key == 124)
@@ -380,13 +468,16 @@ int			key_hook(int key, t_map *map)
 		translate(&map, 'd');
 		draw_map(map);
 	}
-	if (key == 8)
+	if (key == 8) //c
 	{
+        rotate_y(&map);
+		rotate_x(&map);
+        rotate_z(&map);
 		translate_to_center(&map);
 		draw_map(map);
 	}
-	if (map)
-		return (0);
+    if (key == 4) //h
+        toogle_help(map);
 	return (0);
 }
 
@@ -407,7 +498,7 @@ void		draw_map(t_map *map)
 				point[1] = (map->y[i]);
 				point[2] = (map->x[i + 1]);
 				point[3] = (map->y[i + 1]);
-				draw_line(point, map->mlx, map->window);
+				draw_line(point, map, map->col[i]);
 			}
 			if (map->next != NULL)
 			{
@@ -415,7 +506,7 @@ void		draw_map(t_map *map)
 				point[1] = (map->y[i]);
 				point[2] = (map->next->x[i]);
 				point[3] = (map->next->y[i]);
-				draw_line(point, map->mlx, map->window);
+				draw_line(point, map, map->next->col[i]);
 			}
 			i++;
 		}
@@ -423,10 +514,13 @@ void		draw_map(t_map *map)
 	}
 }
 
-void		set_initial(t_map **map)
+void		set_initial(t_map *map)
 {
-	rotate_x(map);
-	rotate_y(map);
+    rotate_y(&map);
+    rotate_x(&map);
+    rotate_z(&map);
+    translate_to_center(&map);
+    draw_map(map);
 }
 
 void		link_wind_to_map(t_wind w, t_map **map)
@@ -450,16 +544,16 @@ void		ft_create_window(t_map **h)
 	t_map 	*map;
 
 	map = *h;
-	w.width = map->len * (map->dist + 15);
-	w.height = ft_list_len(map) * (map->dist + 15);
+	w.width = (map->len > 20 ? 20 : map->len) * (map->dist + 15);
+	w.height = (ft_list_len(map) > 20 ? 15 : ft_list_len(map)) * (map->dist + 15);
 	w.mlx = mlx_init();
 	w.window = mlx_new_window(w.mlx, w.width, w.height, 
 			"-+- Fdf project -+-");
 	link_wind_to_map(w, h);
 	mlx_key_hook(w.window, key_hook, map);
 	mlx_mouse_hook(w.window, mouse_hook, map);
-	translate_to_center(&map);
-	draw_map(map);
+    set_colors(&map);
+    set_initial(map);
 	mlx_loop(w.mlx);
 }
 
