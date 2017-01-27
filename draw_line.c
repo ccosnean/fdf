@@ -6,11 +6,10 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/01/10 15:37:16 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/25 16:07:50 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/27 11:20:10 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
 #include "fdf.h"
 
 void	draw_line(int vect[4], t_map *m, int col)

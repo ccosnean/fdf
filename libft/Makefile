@@ -6,7 +6,7 @@
 #    By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/05 13:02:21 by ccosnean          #+#    #+#              #
-#    Updated: 2017/01/26 15:03:14 by ccosnean         ###   ########.fr        #
+#    Updated: 2017/01/27 18:23:18 by ccosnean         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,20 +31,22 @@ $(NAME): $(OBJ)
 	@printf "\033[0;32mLIBFT:\033[0m Creating libft.a..."
 	@ar -rc $(NAME) $(OBJ)
 	@ranlib $(NAME)
-	@printf "\t[\033[0;32mCreated\033[0m]\n"
+	@zsh ../created.sh
 
 $(OBJ) :
+	@printf "\033[0;32mLIBFT:\033[0m Creating $@"
 	@$(CC) -c $(FLAGS) -o $@ $*.c
+	@zsh ../created.sh
 
 clean :
 	@printf "\033[0;32mLIBFT:\033[0m Deleting Files.o"
 	@rm -rf $(OBJ)
-	@printf "\t\t[\033[0;31mDeleted\033[0m]\n"
+	@zsh ../deleted.sh
 
 fclean: clean
 	@printf "\033[0;32mLIBFT:\033[0m Deleting libft.a"
 	@rm -rf $(NAME)
-	@printf "\t\t[\033[0;31mDeleted\033[0m]\n"
+	@zsh ../deleted.sh
 
 re: fclean all
 
