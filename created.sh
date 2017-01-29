@@ -1,1 +1,1 @@
-tput cup $((LINES)) $((COLUMNS - 9)); echo "[\033[0;32mCreated\033[0m]"
+tput cup $((LINES)) $((COLUMNS - 6)); echo "[\033[0;32mDONE\033[0m]"
