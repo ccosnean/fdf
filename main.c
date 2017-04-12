@@ -6,11 +6,12 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/30 18:45:44 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/27 17:47:14 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/01/31 17:28:37 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
+#include <stdio.h>
 
 void			ft_create_window(t_map **h)
 {
@@ -35,7 +36,7 @@ void			toogle_help(t_map *map)
 
 	if (boo)
 	{
-		ft_mlx_rect(205, 170, 0x00cc6600, map);
+		ft_mlx_rect(205, 190, 0x00cc6600, map);
 		mlx_string_put(map->mlx, map->window, 60, 10,
 				0x00cc6600, "+ Help +");
 		mlx_string_put(map->mlx, map->window, 10, 35,
@@ -49,11 +50,36 @@ void			toogle_help(t_map *map)
 		mlx_string_put(map->mlx, map->window, 10, 115,
 				0x00FFFFFF, "c: bring to center");
 		mlx_string_put(map->mlx, map->window, 10, 135,
+				0x00FFFFFF, "+, -: zoom map");
+		mlx_string_put(map->mlx, map->window, 10, 155,
 				0x00FFFFFF, "h: toogle menu");
 	}
 	else
 		draw_map(map);
 	boo = !boo;
+}
+
+void 			zoom(t_map *map, int z)
+{
+	int 	i;
+	int 	k;
+	t_map 	*m;
+
+	m = map;
+	k = 0;
+	while (m)
+	{
+		i = 0;
+		while (i < m->len)
+		{
+			m->x_i[i] += i * z;
+			m->y_i[i] += k * z;
+			i++;
+		}
+		k++;
+		m = m->next;
+	}
+	reinit_map(&map, 0, 0);
 }
 
 int				key_hook(int key, t_map *map)
@@ -78,6 +104,10 @@ int				key_hook(int key, t_map *map)
 		reinit_map(&map, 1, 0);
 	if (key == 4)
 		toogle_help(map);
+	if (key == 24)
+		zoom(map, 5);
+	if (key == 27)
+		zoom(map, -5);
 	return (0);
 }
 

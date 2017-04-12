@@ -6,7 +6,7 @@
 #    By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/01/26 13:20:03 by ccosnean          #+#    #+#              #
-#    Updated: 2017/01/27 18:50:46 by ccosnean         ###   ########.fr        #
+#    Updated: 2017/03/11 13:38:35 by ccosnean         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,6 +36,15 @@ fclean: clean
 	@rm -rf $(NAME)
 	@zsh deleted.sh
 	@make fclean -C libft
+
+fast: 
+	@printf "\033[1;34mFDF:\033[0m Compiling..."
+	@gcc $(FLAGS) -c $(OBJ)
+	@gcc *.o -Llibft -lft -lmlx -framework OpenGL -framework AppKit -o $(NAME)
+	@zsh created.sh
+
+libft: 
+	@make -C libft
 
 re: fclean all
 

@@ -6,7 +6,7 @@
 /*   By: ccosnean <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/01/27 17:48:38 by ccosnean          #+#    #+#             */
-/*   Updated: 2017/01/27 17:48:42 by ccosnean         ###   ########.fr       */
+/*   Updated: 2017/02/28 14:02:31 by ccosnean         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void			rotate_z(t_map **map)
 	int			i;
 	t_map		*h;
 	double		angle;
-	int			d;
+	int			d,x,y;
 
 	h = *map;
 	angle = h->az * M_PI / 180;
@@ -29,12 +29,10 @@ void			rotate_z(t_map **map)
 		i = -1;
 		while (++i < h->len)
 		{
-			h->x_i[i] -= h->center[0];
-			h->y_i[i] -= h->center[1];
-			h->x[i] = (h->x[i] * cos(angle) - h->y[i] * sin(angle));
-			h->y[i] = (h->x[i] * sin(angle) + h->y[i] * cos(angle));
-			h->x_i[i] += h->center[0];
-			h->y_i[i] += h->center[1];
+			x = h->x[i];
+			y = h->y[i];
+			h->x[i] = (x * cos(angle) - y * sin(angle));
+			h->y[i] = (x * sin(angle) + y * cos(angle));
 		}
 		h = h->next;
 	}
