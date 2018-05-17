@@ -22,7 +22,7 @@ $(NAME):
 	@make -C libft
 	@printf "\033[1;34mFDF:\033[0m Compiling..."
 	@gcc $(FLAGS) -c $(OBJ)
-	@gcc *.o -Llibft -lft -lmlx -framework OpenGL -framework AppKit -o $(NAME)
+	@gcc *.o mlx/libmlx.a -Llibft -lft -framework OpenGL -framework AppKit -o $(NAME)
 	@zsh created.sh
 
 clean: 
@@ -40,7 +40,7 @@ fclean: clean
 fast: 
 	@printf "\033[1;34mFDF:\033[0m Compiling..."
 	@gcc $(FLAGS) -c $(OBJ)
-	@gcc *.o -Llibft -lft -lmlx -framework OpenGL -framework AppKit -o $(NAME)
+	@gcc *.o mlx/libmlx.a -Llibft -lft -framework OpenGL -framework AppKit -o $(NAME)
 	@zsh created.sh
 
 libft: 
